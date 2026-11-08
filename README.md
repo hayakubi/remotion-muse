@@ -23,6 +23,62 @@ npx remotion render src/index.ts WinterCabinRealLoop out/winter-cabin-real-loop.
 Komposisi lama `WinterCabinLoop` tetap ada sebagai placeholder
 pembanding.
 
+## Halloween House (HalloweenHouseLoop)
+
+Komposisi `HalloweenHouseLoop` memakai SVG asli
+`HalloweenHouse.svg`, dipecah dengan `tools/split-halloween-house.py`
+menjadi `public/house-*.svg` (bulan, kelelawar kiri/kanan, badan rumah,
+jendela atas/bawah + pintu, pohon kiri/kanan, tanah).
+Gerakannya: bulan berdenyut, kelelawar mengepak + melayang orbit,
+jendela berkedip bergantian, pohon goyang, kabut tipis melayang.
+
+Spesifikasi mengikuti setting tracker terbaru: 3840x2160 (4K UHD),
+30fps, 6 detik (180 frame).
+
+```bash
+npx remotion render src/index.ts HalloweenHouseLoop out/halloween-house-loop.mp4
+```
+
+## New Year Hero — overlay transparan (NewYear*Loop)
+
+Empat ikon Tahun Baru dari `public/NewYear01/` (`NewYearGift.svg`,
+`Hourglass.svg`, `NewYearCap.svg`, `NewYearDrink.svg`), dipecah dengan
+`tools/split-newyear.py` menjadi `public/gift-*.svg`,
+`public/hourglass-*.svg`, `public/cap-*.svg`, `public/drink-*.svg`.
+Template bersama di `src/NewYearShared.tsx`.
+
+Masing-masing ikon jadi satu loop hero sendiri (arah B: 4 listing
+terpisah): `NewYearGiftLoop`, `NewYearHourglassLoop`, `NewYearCapLoop`,
+`NewYearDrinkLoop`. Spesifikasi: 3840x2160 (4K UHD), 30fps, 6 detik
+(180 frame). Background-nya TRANSPARAN — tanpa background, confetti,
+atau bayangan — supaya bisa dipakai sebagai overlay. Gerak per ikon:
+tutup kado terangkat + pita, jam pasir miring + butir pasir jatuh,
+topi goyang + pom membal, gelas miring tipis + gelembung naik.
+
+MP4/H.264 tidak bisa membawa transparansi, jadi render versi overlay
+sebagai WebM VP9 alpha atau MOV ProRes 4444 alpha. `--image-format=png`
+wajib (config proyek memakai JPEG, dan JPEG membuang alpha):
+
+```bash
+# WebM VP9 alpha — file kecil
+npx remotion render src/index.ts NewYearGiftLoop out/newyear-gift-alpha.webm \
+  --codec=vp9 --image-format=png --pixel-format=yuva420p
+
+# MOV ProRes 4444 alpha — format profesional untuk microstock/editor
+npx remotion render src/index.ts NewYearGiftLoop out/newyear-gift-alpha.mov \
+  --codec=prores --prores-profile=4444 --image-format=png --pixel-format=yuva444p10le
+```
+
+Catatan: flag profil ProRes adalah `--prores-profile` (bukan
+`--pro-res-profile`, yang itu diabaikan diam-diam dan jatuh ke HQ tanpa
+alpha). WebM hasil render terlihat opaque kalau dicek pakai ffprobe /
+decoder bawaan ffmpeg — itu quirk decoder, alpha-nya tetap ada dan
+terbaca normal di Premiere / DaVinci / After Effects (atau cek dengan
+decoder libvpx: `ffmpeg -c:v libvpx-vp9 -i file.webm ...`).
+
+Varian scene (background navy + confetti) yang videonya sudah jadi
+sebelumnya tetap bisa dikembalikan: helper `HeroBackground`,
+`HeroShadow`, dan `Confetti` masih tersimpan di `src/NewYearShared.tsx`.
 
 Loop 10 detik, 1920x1080, 30fps, 300 frame. Frame 300 sama persis
 dengan frame 0, jadi bisa diputar berulang tanpa putus.
